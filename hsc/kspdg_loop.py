@@ -88,8 +88,8 @@ class LoopConfig:
             raise LoopError("invalid_config", f"burn_duration_s={self.burn_duration_s} exceeds {MAX_DURATION_S}")
         if self.history_len < 1:
             raise LoopError("invalid_config", "history_len must be >= 1")
-        if self.decider not in ("kev", "rule"):
-            raise LoopError("invalid_config", f"decider={self.decider!r} must be 'kev' or 'rule'")
+        if self.decider not in ("kev", "rule", "hier"):
+            raise LoopError("invalid_config", f"decider={self.decider!r} must be 'kev', 'rule' or 'hier'")
 
 
 # ---------------------------------------------------------------- observation and features
@@ -389,7 +389,7 @@ def _versions(env_kind: str, cfg: LoopConfig) -> dict:
                 v[pkg] = md.version(pkg)
             except Exception:  # noqa: BLE001
                 v[pkg] = None
-    if cfg.decider != "kev":
+    if cfg.decider not in ("kev", "hier"):
         return v
     try:
         with urllib.request.urlopen(f"{cfg.kev_base_url.rstrip('/')}/v1/models", timeout=5) as r:
@@ -406,7 +406,7 @@ def run(env, cfg: LoopConfig, max_steps: int | None, env_kind: str = "custom", c
     cfg.validate()
     if choose is None:
         choose = rule_choose if cfg.decider == "rule" else (lambda req: kev_choose(req, cfg))
-    model_name = RULE_MODEL if cfg.decider == "rule" else cfg.kev_model
+    model_name = {"rule": RULE_MODEL, "hier": f"hier: Opus+Haiku guidance -> {cfg.kev_model}"}.get(cfg.decider, cfg.kev_model)
     run_id = time.strftime("%Y%m%d-%H%M%S") + "-" + uuid.uuid4().hex[:6]
     path = pathlib.Path(trace_path or pathlib.Path(cfg.trace_dir) / f"{run_id}.jsonl")
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -420,7 +420,7 @@ def run(env, cfg: LoopConfig, max_steps: int | None, env_kind: str = "custom", c
                             "versions": _versions(env_kind, cfg)}) + "\n")
         f.flush()
         try:
-            if max_steps != 0 and cfg.decider == "kev":
+            if max_steps != 0 and cfg.decider in ("kev", "hier"):
                 _warmup(choose, cfg, mission, f)
             wall_before = time.time()
             obs_raw, info = _reset(env)
@@ -435,7 +435,7 @@ def run(env, cfg: LoopConfig, max_steps: int | None, env_kind: str = "custom", c
             step = 0
             while max_steps is None or step < max_steps:
                 feat = features(obs, history, settings["episode_timeout_s"], initial)
-                ctx = context_provider(feat) if context_provider else None
+                ctx = context_provider(feat, obs) if context_provider else None
                 request = build_request(feat, cfg, ctx, mission)
                 rec = {"record": "decision", "run_id": run_id, "step": step, "wall_time": time.time(),
                        "mission_time_s": obs[0], "observation": obs, "features": feat,
@@ -531,6 +531,25 @@ def _terminal_reason(env, info, obs, settings) -> str:
     return "simulator_done"
 
 
+def _make_hier_provider(cfg: LoopConfig, args):
+    """Opus strategist + Haiku tactician (reads ANTHROPIC_API_KEY from the environment; never from a file here)."""
+    import os
+
+    if not os.environ.get("ANTHROPIC_API_KEY"):
+        raise RuntimeError("ANTHROPIC_API_KEY is not set in the environment (decider=hier needs Opus and Haiku)")
+    from hsc.hier_context import HierarchicalContext
+    from hsc.layers.strategist import OpusStrategist
+    from hsc.layers.tactician import HaikuTactician
+
+    prop = 0.0
+    if args.env == "fixture":
+        from hsc.sim.lbg1_lite import LBG1LiteEnv
+
+        prop = LBG1LiteEnv("i2", "lg7", two_axis=False).bandit_params.prop_mass
+    return HierarchicalContext(OpusStrategist(), HaikuTactician(), prop_capacity=prop,
+                               episode_timeout_s=cfg.episode_timeout_s, scenario_label=cfg.scenario)
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--env", choices=["kspdg", "fixture"], default="kspdg",
@@ -551,7 +570,19 @@ def main(argv=None):
     except LoopError as e:
         print(json.dumps({"terminal_reason": e.reason, "error": e.detail}))
         raise SystemExit(2)
-    out = run(env, cfg, None if args.episode else args.steps, env_kind=args.env)
+    provider = None
+    if cfg.decider == "hier":
+        try:
+            provider = _make_hier_provider(cfg, args)
+        except Exception as e:  # noqa: BLE001  (missing key / SDK: stop before any burn)
+            print(json.dumps({"terminal_reason": "invalid_config", "error": repr(e)}))
+            raise SystemExit(2)
+    out = run(env, cfg, None if args.episode else args.steps, env_kind=args.env, context_provider=provider)
+    if provider is not None:
+        provider.wait()
+        sidecar = pathlib.Path(out["trace"]).with_suffix(".hier.json")
+        sidecar.write_text(json.dumps(provider.log, indent=2, default=float))
+        out["hier_log"] = str(sidecar)
     print(json.dumps(out, indent=2, default=float))
     raise SystemExit(0 if out["terminal_reason"] in SIMULATOR_OUTCOMES + ("max_steps_reached", "observation_only") else 1)
 

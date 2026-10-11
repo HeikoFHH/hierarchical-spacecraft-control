@@ -203,6 +203,29 @@ closed to 1,588 m of the Lady using 44 kg of propellant, then the proxy Guard in
 the same time as the coasting Kev run. At 0.2 throttle the Bandit can't outrun a Guard that pursues at
 full thrust, so neither run says anything about the hierarchy yet.
 
+### Recording a baseline, a Kev-only and a hierarchy session
+
+`--decider hier` runs the same sequential loop with Kev as the only acting layer, plus the upper layers: Opus writes
+the mission brief once, and Haiku issues a new tactical goal every `tactical_period_s` on a background thread.
+Each Kev request carries the latest brief and goal as `state.context`. It needs a Kev server and
+`ANTHROPIC_API_KEY` in the environment (the code never reads a key from a file; keep it outside the repo, for
+example in `~/.config/hsc/anthropic.env`, and `source` it before the run). The fixture is not wall-clock paced, so
+raise `--max-observation-age-s` (the first call waits for Opus).
+
+```bash
+python -m hsc.kspdg_loop --env fixture --decider rule --episode --trace-dir results/session
+python -m hsc.kspdg_loop --env fixture --decider kev  --episode --trace-dir results/session
+set -a; . ~/.config/hsc/anthropic.env; set +a
+python -m hsc.kspdg_loop --env fixture --decider hier --episode --max-observation-age-s 300 --request-timeout-s 30 \
+    --trace-dir results/session          # also writes <trace>.hier.json: brief, every goal, latencies, tokens
+python -m hsc.replay results/session/<rule>.jsonl results/session/<kev>.jsonl results/session/<hier>.jsonl \
+    --labels "Baseline (rules)" "Kev-0.8B only" "Hierarchy (Opus+Haiku+Kev)" --out results/session/three_controllers.mp4
+```
+
+Recorded results are in `results/session/`: all three were intercepted by the proxy Guard on the fixture
+(baseline closest Lady approach 1,588 m, Kev-only 2,600 m, hierarchy 2,244 m). Kev-only coasted on every step; with
+the hierarchy's context it chose `NEG_X` on every step, a constant answer rather than a reaction to the Guard.
+
 ### Replay video
 
 `hsc/replay.py` renders one or more traces as an MP4 in the Lady's LVLH frame (along-track by radial),

@@ -1,0 +1,313 @@
+{
+  "strategy": {
+    "brief": {
+      "objective": "Minimize closest_Lady_distance^2 + 1e6/(closest_Guard_distance + 0.1) within 240 s. Bandit starts 2600 m behind the Lady on the same orbit. The advanced Guard sits 600 m behind the Lady, directly in our path. Get as close to the Lady as possible (ideally a 5 m capture) while never letting the Guard inside roughly 250-300 m.",
+      "approach": "Do not fly straight down the along-track line into the Guard. Open early with a radial-inward (-x) sidestep of several hundred metres combined with forward thrust. Lower orbit drifts us forward along +y for free, so the flank pass costs less fuel and gives the Guard a crossing geometry instead of a head-on intercept. Use EVADE_GUARD whenever the Guard is inside 400 m and closing faster than about 5 m/s, always sidestepping toward the Lady rather than retreating; return to APPROACH_LADY once the Guard is behind us or opening. Cap closing speed so we can still brake within the remaining range. Spend the last 30-40 s on the final glide slope to the Lady, accepting a slightly larger miss rather than a Guard pass under 150 m.",
+      "guard_keepout_m": 300.0,
+      "max_closing_speed_mps": 15.0,
+      "final_approach_speed_mps": 2.0,
+      "fuel_reserve_fraction": 0.15,
+      "tactical_period_s": 4.0,
+      "phases": [
+        "0-20 s: GO_TO_WAYPOINT about (-400, -1800) to flank the Guard radially inward while building along-track speed toward the Lady",
+        "20-120 s: Flank pass: APPROACH_LADY at up to 15 m/s along the offset track, with EVADE_GUARD triggered inside 400 m when the Guard is closing, keeping the Guard on our outer/aft side",
+        "120-200 s: Once past the Guard, APPROACH_LADY on a braking glide slope; keep the Lady between us and the Guard where possible",
+        "200-240 s: Final approach at 2 m/s or less to reach 5 m; use BRAKE if overshooting. Use HOLD_STANDOFF only if the Guard threatens inside 150 m and there is no evasion line toward the Lady",
+        "Throughout: COAST whenever the trajectory is already good, to preserve the 15% fuel reserve for late evasion"
+      ]
+    },
+    "model": "claude-opus-5-5",
+    "latency_s": 17.199,
+    "input_tokens": 1553,
+    "output_tokens": 1276
+  },
+  "goals": [
+    {
+      "mission_t": 0.0,
+      "version": 1,
+      "goal": {
+        "mode_hint": "GO_TO_WAYPOINT",
+        "waypoint_lvlh_m": [
+          -400.0,
+          -1800.0,
+          0.0
+        ],
+        "max_closing_speed_mps": 15.0,
+        "guard_keepout_m": 300.0,
+        "standoff_m": 300.0,
+        "rationale": "Follow the brief's opening sidestep to the radially inward flank waypoint at (-400, -1800) so the Guard is passed on a crossing geometry rather than a head-on intercept, while keeping closing speed capped at 15 m/s and the Guard keep-out at 300 m.",
+        "issued_at": 0.0,
+        "valid_for_s": 20.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 3.284,
+      "input_tokens": 2721,
+      "output_tokens": 212
+    },
+    {
+      "mission_t": 10.999999999999975,
+      "version": 2,
+      "goal": {
+        "mode_hint": "GO_TO_WAYPOINT",
+        "waypoint_lvlh_m": [
+          -400.0,
+          -1800.0,
+          0.0
+        ],
+        "max_closing_speed_mps": 15.0,
+        "guard_keepout_m": 300.0,
+        "standoff_m": 300.0,
+        "rationale": "The Guard is closing fast at about 12 m/s from ahead, so we keep the radially inward flank waypoint at (-400, -1800) to route around it while holding the 300 m keep-out and the 15 m/s closing cap, with the mode left strongly preferred over AUTO until the Guard clears.",
+        "issued_at": 10.999999999999975,
+        "valid_for_s": 8.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 2.191,
+      "input_tokens": 4530,
+      "output_tokens": 218
+    },
+    {
+      "mission_t": 17.999999999999957,
+      "version": 3,
+      "goal": {
+        "mode_hint": "GO_TO_WAYPOINT",
+        "waypoint_lvlh_m": [
+          -400.0,
+          -1800.0,
+          0.0
+        ],
+        "max_closing_speed_mps": 15.0,
+        "guard_keepout_m": 300.0,
+        "standoff_m": 300.0,
+        "rationale": "The Guard is still closing from ahead at about 12 m/s while our bandit drifts radially inward, so we keep the flank waypoint at (-400, -1800) to sidestep it at a safe offset while holding the 300 m keep-out and 15 m/s cap, and re-plan once the relative geometry clarifies.",
+        "issued_at": 17.999999999999957,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 1.945,
+      "input_tokens": 4540,
+      "output_tokens": 223
+    },
+    {
+      "mission_t": 23.999999999999957,
+      "version": 4,
+      "goal": {
+        "mode_hint": "GO_TO_WAYPOINT",
+        "waypoint_lvlh_m": [
+          -400.0,
+          -1800.0,
+          0.0
+        ],
+        "max_closing_speed_mps": 15.0,
+        "guard_keepout_m": 300.0,
+        "standoff_m": 300.0,
+        "rationale": "The Guard is still closing from ahead at about 12 m/s while our bandit drifts radially inward, so we keep the flank waypoint at (-400, -1800) to sidestep it at a safe offset while holding the 300 m keep-out and 15 m/s cap, and re-plan once the relative geometry clarifies.",
+        "issued_at": 23.999999999999957,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 1.87,
+      "input_tokens": 4545,
+      "output_tokens": 223
+    },
+    {
+      "mission_t": 29.999999999999957,
+      "version": 5,
+      "goal": {
+        "mode_hint": "GO_TO_WAYPOINT",
+        "waypoint_lvlh_m": [
+          -400.0,
+          -1800.0,
+          0.0
+        ],
+        "max_closing_speed_mps": 12.0,
+        "guard_keepout_m": 300.0,
+        "standoff_m": 300.0,
+        "rationale": "The Guard is now moving head-on toward us at about 12 m/s while sitting roughly 900 m out at x\u2248+70, so we keep the radially inward flank waypoint at (-400,-1800) for lateral clearance of about 470 m and trim closing speed to 12 m/s to preserve braking margin, then re-plan as the crossing geometry re",
+        "issued_at": 29.999999999999957,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 5.841,
+      "input_tokens": 4546,
+      "output_tokens": 968
+    },
+    {
+      "mission_t": 46.99999999999996,
+      "version": 6,
+      "goal": {
+        "mode_hint": "GO_TO_WAYPOINT",
+        "waypoint_lvlh_m": [
+          -400.0,
+          -1800.0,
+          0.0
+        ],
+        "max_closing_speed_mps": 12.0,
+        "guard_keepout_m": 300.0,
+        "standoff_m": 300.0,
+        "rationale": "The Guard is still closing head-on from about 1100 m behind us while our bandit has drifted to x of about -220 m, so we hold the radially inward flank waypoint and keep closing speed capped at 12 m/s to preserve braking margin, re-planning as the crossing geometry develops.",
+        "issued_at": 46.99999999999996,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 2.087,
+      "input_tokens": 4563,
+      "output_tokens": 213
+    },
+    {
+      "mission_t": 52.99999999999996,
+      "version": 7,
+      "goal": {
+        "mode_hint": "GO_TO_WAYPOINT",
+        "waypoint_lvlh_m": [
+          -400.0,
+          -1800.0,
+          0.0
+        ],
+        "max_closing_speed_mps": 12.0,
+        "guard_keepout_m": 300.0,
+        "standoff_m": 300.0,
+        "rationale": "The Guard is still about 1400 m out and closing head-on, so we keep the radially inward flank waypoint at a 12 m/s closing cap to build crossing geometry while preserving braking margin.",
+        "issued_at": 52.99999999999996,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 2.04,
+      "input_tokens": 4542,
+      "output_tokens": 183
+    },
+    {
+      "mission_t": 58.99999999999996,
+      "version": 8,
+      "goal": {
+        "mode_hint": "GO_TO_WAYPOINT",
+        "waypoint_lvlh_m": [
+          -400.0,
+          -1800.0,
+          0.0
+        ],
+        "max_closing_speed_mps": 12.0,
+        "guard_keepout_m": 300.0,
+        "standoff_m": 300.0,
+        "rationale": "The Guard is still about 1300 m out and closing head-on at about 12 m/s, so we hold the radially inward flank waypoint at the 12 m/s cap to build crossing geometry while keeping braking margin.",
+        "issued_at": 58.99999999999996,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 1.874,
+      "input_tokens": 4514,
+      "output_tokens": 189
+    },
+    {
+      "mission_t": 64.9999999999999,
+      "version": 9,
+      "goal": {
+        "mode_hint": "GO_TO_WAYPOINT",
+        "waypoint_lvlh_m": [
+          -300.0,
+          -1700.0,
+          0.0
+        ],
+        "max_closing_speed_mps": 8.0,
+        "guard_keepout_m": 300.0,
+        "standoff_m": 300.0,
+        "rationale": "The Guard is about 1260 m away and closing at roughly 12 m/s while sweeping toward -x, so I'm moving the waypoint to a less radially extreme point at (-300, -1700) and reducing the closing cap to 8 m/s to keep a wider miss margin and braking room.",
+        "issued_at": 64.9999999999999,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 7.074,
+      "input_tokens": 4521,
+      "output_tokens": 1257
+    },
+    {
+      "mission_t": 84.99999999999876,
+      "version": 10,
+      "goal": {
+        "mode_hint": "GO_TO_WAYPOINT",
+        "waypoint_lvlh_m": [
+          -300.0,
+          -1700.0,
+          0.0
+        ],
+        "max_closing_speed_mps": 8.0,
+        "guard_keepout_m": 300.0,
+        "standoff_m": 300.0,
+        "rationale": "The Guard at about (-396, -1357) is sweeping in -x while closing on us in -y, so holding the offset waypoint at (-300, -1700) keeps the radial separation and a wide miss margin while we keep our speed capped at 8 m/s for braking room.",
+        "issued_at": 84.99999999999876,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 5.668,
+      "input_tokens": 4548,
+      "output_tokens": 938
+    },
+    {
+      "mission_t": 101.9999999999978,
+      "version": 11,
+      "goal": {
+        "mode_hint": "GO_TO_WAYPOINT",
+        "waypoint_lvlh_m": [
+          -300.0,
+          -1700.0,
+          0.0
+        ],
+        "max_closing_speed_mps": 12.0,
+        "guard_keepout_m": 300.0,
+        "standoff_m": 300.0,
+        "rationale": "The Bandit has drifted radially outward to (-988, -2130) with its velocity pointing away from the Lady, so I'm steering back toward the offset waypoint at (-300, -1700) with a higher 12 m/s cap to recover lost range while keeping the Guard, about 810 m away, on the radial outer side with a 300 m kee",
+        "issued_at": 101.9999999999978,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 8.765,
+      "input_tokens": 4541,
+      "output_tokens": 1473
+    },
+    {
+      "mission_t": 126.99999999999638,
+      "version": 12,
+      "goal": {
+        "mode_hint": "EVADE_GUARD",
+        "waypoint_lvlh_m": [
+          -1600.0,
+          -1450.0,
+          0.0
+        ],
+        "max_closing_speed_mps": 8.0,
+        "guard_keepout_m": 300.0,
+        "standoff_m": 300.0,
+        "rationale": "The Guard is 507 m away and closing at 12 m/s, nearly on the Bandit-to-Lady line, and the Bandit has drifted far outward, so I'm sidestepping radially outward and then re-routing toward the Lady at a reduced 8 m/s cap to keep the Guard on the inner side at 300 m or more while preserving fuel.",
+        "issued_at": 126.99999999999638,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 7.02,
+      "input_tokens": 4568,
+      "output_tokens": 1265
+    },
+    {
+      "mission_t": 145.9999999999953,
+      "version": 13,
+      "goal": {
+        "mode_hint": "EVADE_GUARD",
+        "waypoint_lvlh_m": [
+          -2200.0,
+          -1000.0,
+          0.0
+        ],
+        "max_closing_speed_mps": 8.0,
+        "guard_keepout_m": 250.0,
+        "standoff_m": 300.0,
+        "rationale": "The Guard is 276 m away and closing at 12 m/s on the outer side of our path, so I'm sidestepping radially inward to put it behind us, then will re-route toward the Lady at a capped speed, accepting a larger miss over a Guard pass under 150 m.",
+        "issued_at": 145.9999999999953,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 12.142,
+      "input_tokens": 4574,
+      "output_tokens": 2164
+    }
+  ],
+  "errors": []
+}

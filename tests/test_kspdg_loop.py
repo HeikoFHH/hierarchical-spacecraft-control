@@ -442,3 +442,47 @@ def test_unknown_decider_is_rejected():
     with pytest.raises(K.LoopError) as e:
         K.LoopConfig(decider="jev").validate()
     assert e.value.reason == "invalid_config"
+
+
+class _Res:
+    model, latency_s, input_tokens, output_tokens = "fake", 0.01, 10, 5
+
+
+class _FakeStrategist:
+    def plan(self, s, label):
+        from hsc.control.plans import MissionBrief
+        return MissionBrief(approach="fake brief", tactical_period_s=5.0), _Res()
+
+
+class _FakeTactician:
+    def update(self, history, brief, current):
+        import dataclasses
+        return dataclasses.replace(current, mode_hint="BRAKE", issued_at=history[-1].t, rationale="fake"), _Res()
+
+
+def test_hier_context_feeds_brief_and_goal_into_the_request(tmp_path):
+    """lbg1_lite TEST FIXTURE: context from fake Opus/Haiku layers reaches the loop's decisions and the sidecar log."""
+    from hsc.hier_context import HierarchicalContext
+
+    cfg = K.LoopConfig(decider="rule", kev_base_url="http://127.0.0.1:9")
+    ctx = HierarchicalContext(_FakeStrategist(), _FakeTactician(), prop_capacity=400.0, episode_timeout_s=240.0)
+    seen = []
+
+    def choose(req):
+        seen.append(json.loads(req["state"]).get("context"))
+        return K.rule_choose(req)
+
+    out = K.run(K.make_env("fixture", cfg), cfg, 12, env_kind="fixture", choose=choose, context_provider=ctx,
+                trace_path=tmp_path / "t.jsonl")
+    ctx.wait()
+    assert out["steps"] == 12
+    assert seen[0]["brief"]["approach"] == "fake brief" and seen[0]["goal"]["mode_hint"] == "AUTO"
+    assert any(c["goal"]["mode_hint"] == "BRAKE" and c["version"] >= 1 for c in seen)
+    assert ctx.log["strategy"]["brief"]["approach"] == "fake brief" and ctx.log["goals"] and not ctx.log["errors"]
+
+
+def test_hier_decider_is_accepted_and_needs_the_key(monkeypatch):
+    K.LoopConfig(decider="hier").validate()
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    with pytest.raises(RuntimeError, match="ANTHROPIC_API_KEY"):
+        K._make_hier_provider(K.LoopConfig(decider="hier"), type("A", (), {"env": "fixture"})())

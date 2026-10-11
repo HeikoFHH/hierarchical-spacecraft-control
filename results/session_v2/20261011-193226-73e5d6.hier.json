@@ -1,0 +1,49 @@
+{
+  "strategy": {
+    "brief": {
+      "objective": "Get the Bandit inside 5 m of the Lady before t=240 s, or as close as possible, while keeping the Guard well away. A Guard pass closer than about 100 m costs as much as missing the Lady by 100 m, and a Guard capture at 5 m is a catastrophic loss.",
+      "approach": "Outrun the Guard rather than out-wait it. Its closing speed is capped near 12 m/s, so build along-track speed early toward about 18-20 m/s and offset radially by 250-350 m so the head-on pass happens with lateral clearance. Choose the offset side that lets orbital drift help (radial-in drifts forward relative to the Lady), and use EVADE_GUARD only when the Guard intrudes on the keepout. After the pass, the Guard can only trail at about 12 m/s, so keep the speed lead with APPROACH_LADY along the glide slope, then brake progressively to a slow final approach on the Lady. Do not stop for BRAKE or HOLD_STANDOFF while the Guard is closing. Use COAST whenever speed and geometry are already good, to save fuel for the terminal braking (about 20 m/s needed) and any late evasion.",
+      "guard_keepout_m": 250.0,
+      "max_closing_speed_mps": 20.0,
+      "final_approach_speed_mps": 2.0,
+      "fuel_reserve_fraction": 0.15,
+      "tactical_period_s": 4.0,
+      "phases": [
+        "T0-20s SPRINT_AND_OFFSET: thrust forward toward the Lady at full along-track authority while building a 250-350 m radial offset (GO_TO_WAYPOINT around [-300, -900, 0] or the mirror side); target 15-20 m/s closing.",
+        "PASS_GUARD: hold the offset and closing speed through the Guard's crossing. Trigger EVADE_GUARD if the Guard is predicted inside 250 m; never reverse toward the Bandit's start.",
+        "RUN_IN: once the Guard is behind and opening or slower, return to the Lady's track with APPROACH_LADY capped at 20 m/s and COAST when on profile. Watch Guard range rate, and re-evade if the Guard comes within 250 m.",
+        "TERMINAL: begin braking about 300 m out on the glide slope, finishing at 2 m/s or less inside 30 m, then close to under 5 m. If time is short, accept a higher terminal speed rather than finish short.",
+        "CONTINGENCY: if fuel falls below the reserve, or the Guard sits between Bandit and Lady inside 400 m, favour EVADE_GUARD/COAST to protect Guard distance, then take whatever Lady approach remains."
+      ]
+    },
+    "model": "claude-opus-5-5",
+    "latency_s": 19.323,
+    "input_tokens": 1553,
+    "output_tokens": 1680
+  },
+  "goals": [
+    {
+      "mission_t": 0.0,
+      "version": 1,
+      "goal": {
+        "mode_hint": "GO_TO_WAYPOINT",
+        "waypoint_lvlh_m": [
+          -300.0,
+          -900.0,
+          0.0
+        ],
+        "max_closing_speed_mps": 20.0,
+        "guard_keepout_m": 250.0,
+        "standoff_m": 300.0,
+        "rationale": "Begin the sprint by routing the Bandit to a 300 m radial offset waypoint on the Guard's near side, keeping the Guard well clear while building closing speed toward the Lady.",
+        "issued_at": 0.0,
+        "valid_for_s": 20.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 2.028,
+      "input_tokens": 2816,
+      "output_tokens": 179
+    }
+  ],
+  "errors": []
+}

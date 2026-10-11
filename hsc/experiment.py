@@ -25,6 +25,7 @@ DESCRIPTIONS = {
     "rule_hier": "No models. Rule tactician (out-of-plane bypass) + rule decider.",
     "flat_opus": "Opus picks every maneuver directly (blocking).",
     "flat_haiku": "Haiku picks every maneuver directly (blocking).",
+    "haiku_rule": "Ablation: default brief + Haiku tactical goals + rule decider (isolates Opus).",
     "hier_rule_fast": "Opus brief + Haiku tactical goals + rule decider (no Jev).",
     "hier_jev": "Full proposal: Opus brief + Haiku tactical goals + Jev picks maneuvers.",
     "hier_no_opus": "Ablation: default brief + Haiku tactical goals + Jev.",
@@ -52,6 +53,8 @@ def make_config(name: str, haiku_images: bool = False) -> list[ControllerConfig]
         return [ControllerConfig(name, FixedStrategist(), None, FlatLLMDecider(OPUS_MODEL, effort="low"))]
     if name == "flat_haiku":
         return [ControllerConfig(name, FixedStrategist(), None, FlatLLMDecider(HAIKU_MODEL, effort="low"))]
+    if name == "haiku_rule":
+        return [ControllerConfig(name, FixedStrategist(), HaikuTactician(use_images=haiku_images), RuleDecider())]
     if name == "hier_rule_fast":
         return [ControllerConfig(name, OpusStrategist(), HaikuTactician(use_images=haiku_images), RuleDecider())]
     if name == "hier_jev":

@@ -1,0 +1,49 @@
+{
+  "strategy": {
+    "brief": {
+      "objective": "Minimise closest_lady_distance^2 + 1e6/(closest_guard_distance+0.1) within 240 s. The aim is to close as much of the 2600 m gap to the Lady as possible without letting the advanced Guard inside about 250 m. Touching the Lady (<5 m) is a bonus, not a must.",
+      "approach": "Do not fly straight down the along-track line into the Guard. Open a flank by moving radially inward (negative x, roughly 300-500 m), which also gives slight forward CW drift, while building along-track closing speed toward the Lady. Use EVADE_GUARD whenever the Guard is inside the keepout or closing fast, and otherwise route GO_TO_WAYPOINT around the Guard's side opposite its velocity. Once the Guard is behind or abeam and the path is clear, switch to APPROACH_LADY and brake on the glide slope. If the Guard sits persistently between the Bandit and the Lady and fuel or time runs low, settle for HOLD_STANDOFF at the closest safe range rather than forcing a pass.",
+      "guard_keepout_m": 250.0,
+      "max_closing_speed_mps": 12.0,
+      "final_approach_speed_mps": 2.0,
+      "fuel_reserve_fraction": 0.15,
+      "tactical_period_s": 4.0,
+      "phases": [
+        "T0-30s FLANK: accelerate forward modestly (about 6-8 m/s) while dropping to about x=-400 m to offset from the Guard's line; watch the Guard's response.",
+        "T30-150s BYPASS: keep at least 250 m from the Guard, sidestepping with EVADE_GUARD as needed; aim the waypoint for the Lady-side gap opposite the Guard's lateral motion; cap closing speed at 12 m/s.",
+        "T150-220s APPROACH: once the Guard is abeam or behind and the range to the Lady is under about 800 m, use APPROACH_LADY with a braking glide slope down to 2 m/s near the Lady.",
+        "T220-240s TERMINAL: push for the <5 m contact if the Guard is beyond 250 m; otherwise BRAKE or HOLD_STANDOFF to lock in the best miss distance and preserve Guard separation.",
+        "ANY TIME: if fuel nears the 15% reserve, COAST or HOLD_STANDOFF; Guard keepout overrides Lady progress."
+      ]
+    },
+    "model": "claude-opus-5-5",
+    "latency_s": 17.059,
+    "input_tokens": 1553,
+    "output_tokens": 1408
+  },
+  "goals": [
+    {
+      "mission_t": 0.0,
+      "version": 1,
+      "goal": {
+        "mode_hint": "GO_TO_WAYPOINT",
+        "waypoint_lvlh_m": [
+          -400.0,
+          -1700.0,
+          0.0
+        ],
+        "max_closing_speed_mps": 8.0,
+        "guard_keepout_m": 250.0,
+        "standoff_m": 300.0,
+        "rationale": "Begin the FLANK phase by offsetting radially inward to x=-400 m while closing along-track at a moderate speed, keeping the Guard well outside its 250 m keepout as it sits between the Bandit and the Lady.",
+        "issued_at": 0.0,
+        "valid_for_s": 30.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 2.061,
+      "input_tokens": 2723,
+      "output_tokens": 193
+    }
+  ],
+  "errors": []
+}

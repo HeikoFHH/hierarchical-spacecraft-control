@@ -486,3 +486,41 @@ def test_hier_decider_is_accepted_and_needs_the_key(monkeypatch):
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     with pytest.raises(RuntimeError, match="ANTHROPIC_API_KEY"):
         K._make_hier_provider(K.LoopConfig(decider="hier"), type("A", (), {"env": "fixture"})())
+
+
+def test_hier_rule_uses_waypoint_speed_cap_and_keepout_mechanically():
+    feat = _feat((1000, 0, 0))                                   # Lady 1 km along +X, Guard far away
+    req = lambda goal: {"state": json.dumps({"features": feat, "context": {"goal": goal} if goal else None})}  # noqa: E731
+    assert K.hier_rule_choose(req(None))[0]["choice"] == "POS_X"      # no context: plain rule
+    # a waypoint 500 m along -Y overrides the Lady as the steering target
+    assert K.hier_rule_choose(req({"waypoint_rel_bandit_cbci_m": [0, -500, 0]}))[0]["choice"] == "NEG_Y"
+    # a reached waypoint (inside the tolerance) falls back to the Lady
+    assert K.hier_rule_choose(req({"waypoint_rel_bandit_cbci_m": [0, -10, 0]}))[0]["choice"] == "POS_X"
+    # a tiny closing-speed cap with the Bandit already moving at it means coast
+    feat2 = _feat((1000, 0, 0), lady_vel=(-1.0, 0, 0))
+    r2 = {"state": json.dumps({"features": feat2, "context": {"goal": {"max_closing_speed_mps": 1.0}}})}
+    assert K.hier_rule_choose(r2)[0]["choice"] == "COAST"
+    assert K.hier_rule_choose(req(None))[0]["model"] == K.HIER_RULE_MODEL
+
+
+def test_hier_context_adds_waypoint_in_the_loops_inertial_frame(tmp_path):
+    from hsc.hier_context import HierarchicalContext
+
+    class Tac(_FakeTactician):
+        def update(self, history, brief, current):
+            import dataclasses
+            return dataclasses.replace(current, waypoint_lvlh_m=[0.0, -300.0, 0.0], issued_at=history[-1].t), _Res()
+
+    cfg = K.LoopConfig(decider="hier_rule", kev_base_url="http://127.0.0.1:9")
+    ctx = HierarchicalContext(_FakeStrategist(), Tac(), prop_capacity=400.0, episode_timeout_s=240.0)
+    seen = []
+
+    def choose(req):
+        seen.append(json.loads(req["state"])["context"]["goal"])
+        return K.hier_rule_choose(req)
+
+    K.run(K.make_env("fixture", cfg), cfg, 10, env_kind="fixture", choose=choose, context_provider=ctx,
+          trace_path=tmp_path / "t.jsonl")
+    ctx.wait()
+    wp = [g["waypoint_rel_bandit_cbci_m"] for g in seen if g["waypoint_rel_bandit_cbci_m"]]
+    assert wp and all(abs(sum(x * x for x in w) ** 0.5 - 2300) < 700 for w in wp)  # roughly 300 m behind the Lady, ~2.6 km away

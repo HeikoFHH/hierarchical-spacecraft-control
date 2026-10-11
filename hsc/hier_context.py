@@ -17,8 +17,11 @@ from __future__ import annotations
 import threading
 import time
 
+import numpy as np
+
 from hsc.control.plans import MissionBrief, TacticalGoal
 from hsc.control.situation import Situation, situation_from_obs
+from hsc.sim.orbits import lvlh_basis
 
 SCENARIO_LABEL = "LBG1_LG7_I2_V1"
 
@@ -53,10 +56,16 @@ class HierarchicalContext:
                                                 daemon=True)
                 self._thread.start()
             goal, version = self.goal, self.version
+        wp_cbci = None
+        if goal.waypoint_lvlh_m is not None:  # waypoint (Lady LVLH) as an inertial offset from the Bandit, the loop's frame
+            basis = lvlh_basis(np.asarray(obs[9:12], dtype=float), np.asarray(obs[12:15], dtype=float))
+            wp = basis.T @ np.asarray(goal.waypoint_lvlh_m, dtype=float) + np.asarray(obs[9:12]) - np.asarray(obs[3:6])
+            wp_cbci = [round(float(x), 1) for x in wp]
         return {"version": version, "age_s": round(t - goal.issued_at, 1), "frame": "Lady LVLH: x radial out, y along-track, z normal",
                 "brief": {"approach": self.brief.approach[:240], "guard_keepout_m": self.brief.guard_keepout_m,
                           "max_closing_speed_mps": self.brief.max_closing_speed_mps},
                 "goal": {"mode_hint": goal.mode_hint, "waypoint_lvlh_m": goal.waypoint_lvlh_m,
+                         "waypoint_rel_bandit_cbci_m": wp_cbci, "guard_keepout_m": goal.guard_keepout_m,
                          "standoff_m": goal.standoff_m, "max_closing_speed_mps": goal.max_closing_speed_mps,
                          "rationale": goal.rationale[:160]}}
 

@@ -1,0 +1,49 @@
+{
+  "strategy": {
+    "brief": {
+      "objective": "Minimize closest_lady^2 + 1e6/(closest_guard+0.1) within 240 s. Reach the Lady (ideally within 5 m for the win) while keeping the advanced Guard outside about 40 m. The Lady miss term dominates: 300 m of miss costs 9e4, roughly what a 11 m Guard pass costs, so press toward the Lady and use the Guard term only as a hard floor.",
+      "approach": "Open immediately with a combined forward and radial-in burn to build a lateral offset of a few hundred metres from the Guard's line, which sits on the along-track axis between us and the Lady. Accelerate along-track toward a cruise closing speed of about 18 m/s so the 2600 m gap closes with braking margin; radial-in also aids forward drift. Sweep around the Guard on the radial side, treating EVADE_GUARD as a sidestep that keeps net progress toward the Lady rather than a retreat, and avoid head-on geometry with the Guard. Once past the Guard, or once Guard range is opening, switch to APPROACH_LADY on the braking glide slope and finish below 2 m/s so we do not overshoot. Never fall back to long standoffs: time is the binding constraint.",
+      "guard_keepout_m": 40.0,
+      "max_closing_speed_mps": 18.0,
+      "final_approach_speed_mps": 2.0,
+      "fuel_reserve_fraction": 0.12,
+      "tactical_period_s": 4.0,
+      "phases": [
+        "0-20 s OFFSET: GO_TO_WAYPOINT at about [-300, -1800, 0] using forward plus radial-in thrust to leave the Guard's line and start closing.",
+        "20-100 s FLANK RUN: accelerate to about 18 m/s closing and keep a radial offset of at least 200 m while the Guard is ahead. Use EVADE_GUARD only if Guard range drops below 120 m and closing faster than 8 m/s, then resume progress.",
+        "100-160 s PASS: slip past the Guard on the radial side, holding Guard separation above 40 m. Once the Guard is behind, or its range rate is positive, commit toward the Lady.",
+        "160-230 s TERMINAL: APPROACH_LADY on the glide slope, braking so that speed is at or below 2 m/s inside 100 m. Accept a brief EVADE_GUARD only if the Guard comes within 40 m.",
+        "230-240 s ENDGAME: if not within 5 m, keep closing on the Lady (no BRAKE far out). COAST only if fuel falls below reserve."
+      ]
+    },
+    "model": "claude-opus-5-5",
+    "latency_s": 17.216,
+    "input_tokens": 1553,
+    "output_tokens": 1476
+  },
+  "goals": [
+    {
+      "mission_t": 0.0,
+      "version": 1,
+      "goal": {
+        "mode_hint": "GO_TO_WAYPOINT",
+        "waypoint_lvlh_m": [
+          -300.0,
+          -1800.0,
+          0.0
+        ],
+        "max_closing_speed_mps": 18.0,
+        "guard_keepout_m": 40.0,
+        "standoff_m": 300.0,
+        "rationale": "Following the brief's OFFSET phase, I'm routing radially inward to leave the Guard's along-track line while making forward progress toward the Lady, with the Guard still 1200 m ahead of the waypoint.",
+        "issued_at": 0.0,
+        "valid_for_s": 20.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 4.143,
+      "input_tokens": 2779,
+      "output_tokens": 693
+    }
+  ],
+  "errors": []
+}

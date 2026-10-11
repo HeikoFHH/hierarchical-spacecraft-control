@@ -74,6 +74,7 @@ class LoopConfig:
     krpc_rpc_port: int = 50000
     krpc_stream_port: int = 50001
     trace_dir: str = "results/traces"
+    fixture_scenario: str = "i2:lg7"  # --env fixture only: init_cond:lady_guard_policy of the lbg1_lite stand-in
 
     def validate(self):
         if self.warmup_requests < 0:
@@ -88,8 +89,8 @@ class LoopConfig:
             raise LoopError("invalid_config", f"burn_duration_s={self.burn_duration_s} exceeds {MAX_DURATION_S}")
         if self.history_len < 1:
             raise LoopError("invalid_config", "history_len must be >= 1")
-        if self.decider not in ("kev", "rule", "hier"):
-            raise LoopError("invalid_config", f"decider={self.decider!r} must be 'kev', 'rule' or 'hier'")
+        if self.decider not in ("kev", "rule", "hier", "hier_rule"):
+            raise LoopError("invalid_config", f"decider={self.decider!r} must be 'kev', 'rule', 'hier' or 'hier_rule'")
 
 
 # ---------------------------------------------------------------- observation and features
@@ -224,14 +225,17 @@ RULE_MODEL = "rule_inertial (deterministic, no model)"
 
 
 def rule_action(feat: dict, max_speed_mps: float = 8.0, avoid_radius_m: float = 400.0,
-                deadband_mps: float = 0.3) -> str:
+                deadband_mps: float = 0.3, waypoint_rel_m: list | None = None, waypoint_tol_m: float = 40.0) -> str:
     """Deterministic baseline over the same seven actions: steer the Bandit's velocity relative to the Lady
     toward a desired one (head for the Lady, slowing near her; push away from the Guard inside
     ``avoid_radius_m``) by firing the single inertial axis with the largest velocity error."""
     lady, guard = feat["lady"], feat["guard"]
     d_l = lady["distance_m"]
-    u_l = [x / d_l for x in lady["rel_pos_m"]] if d_l > 1e-6 else [0.0, 0.0, 0.0]
-    v_des = [u * min(max_speed_mps, 0.05 * d_l + 0.5) for u in u_l]
+    steer_pos, steer_d = lady["rel_pos_m"], d_l
+    if waypoint_rel_m is not None and _norm(waypoint_rel_m) > waypoint_tol_m:  # head for the waypoint until reached
+        steer_pos, steer_d = waypoint_rel_m, _norm(waypoint_rel_m)
+    u_l = [x / steer_d for x in steer_pos] if steer_d > 1e-6 else [0.0, 0.0, 0.0]
+    v_des = [u * min(max_speed_mps, 0.05 * steer_d + 0.5) for u in u_l]
     d_g = guard["distance_m"]
     if 1e-6 < d_g < avoid_radius_m:
         push = 6.0 * (1.0 - d_g / avoid_radius_m)
@@ -248,6 +252,27 @@ def rule_choose(request: dict) -> tuple[dict, float]:
     t0 = time.perf_counter()
     choice = rule_action(json.loads(request["state"])["features"])
     return {"choice": choice, "confidence": None, "probabilities": {}, "model": RULE_MODEL}, time.perf_counter() - t0
+
+
+HIER_RULE_MODEL = "hier_rule (Opus brief + Haiku goal steer the deterministic rule)"
+
+
+def hier_rule_choose(request: dict) -> tuple[dict, float]:
+    """Same deterministic rule, but the upper layers' output is used mechanically: the tactical waypoint is the
+    steering target, the goal's closing-speed limit caps the approach speed, and the keep-out radius is the radius
+    inside which the rule pushes away from the Guard. Without a context it is exactly ``rule_choose``."""
+    t0 = time.perf_counter()
+    state = json.loads(request["state"])
+    goal = (state.get("context") or {}).get("goal") or {}
+    kw = {}
+    if goal.get("max_closing_speed_mps"):
+        kw["max_speed_mps"] = float(goal["max_closing_speed_mps"])
+    if goal.get("guard_keepout_m"):
+        kw["avoid_radius_m"] = float(goal["guard_keepout_m"])
+    if goal.get("waypoint_rel_bandit_cbci_m") is not None:
+        kw["waypoint_rel_m"] = [float(x) for x in goal["waypoint_rel_bandit_cbci_m"]]
+    choice = rule_action(state["features"], **kw)
+    return {"choice": choice, "confidence": None, "probabilities": {}, "model": HIER_RULE_MODEL}, time.perf_counter() - t0
 
 
 # ---------------------------------------------------------------- action mapping and validation
@@ -330,7 +355,8 @@ def make_env(kind: str, cfg: LoopConfig, check_krpc: bool = True):
         # TEST FIXTURE ONLY: pure-Python stand-in, not the real game. lg7 is a proxy Guard.
         from hsc.sim.lbg1_lite import LBG1LiteEnv
 
-        return LBG1LiteEnv("i2", "lg7", episode_timeout=cfg.episode_timeout_s, two_axis=False)
+        init_cond, policy = cfg.fixture_scenario.split(":")
+        return LBG1LiteEnv(init_cond, policy, episode_timeout=cfg.episode_timeout_s, two_axis=False)
     raise LoopError("invalid_config", f"unknown env {kind!r}")
 
 
@@ -405,8 +431,9 @@ def run(env, cfg: LoopConfig, max_steps: int | None, env_kind: str = "custom", c
     deterministic baseline when ``cfg.decider == "rule"``."""
     cfg.validate()
     if choose is None:
-        choose = rule_choose if cfg.decider == "rule" else (lambda req: kev_choose(req, cfg))
-    model_name = {"rule": RULE_MODEL, "hier": f"hier: Opus+Haiku guidance -> {cfg.kev_model}"}.get(cfg.decider, cfg.kev_model)
+        choose = {"rule": rule_choose, "hier_rule": hier_rule_choose}.get(cfg.decider, lambda req: kev_choose(req, cfg))
+    model_name = {"rule": RULE_MODEL, "hier_rule": HIER_RULE_MODEL,
+                  "hier": f"hier: Opus+Haiku guidance -> {cfg.kev_model}"}.get(cfg.decider, cfg.kev_model)
     run_id = time.strftime("%Y%m%d-%H%M%S") + "-" + uuid.uuid4().hex[:6]
     path = pathlib.Path(trace_path or pathlib.Path(cfg.trace_dir) / f"{run_id}.jsonl")
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -571,7 +598,7 @@ def main(argv=None):
         print(json.dumps({"terminal_reason": e.reason, "error": e.detail}))
         raise SystemExit(2)
     provider = None
-    if cfg.decider == "hier":
+    if cfg.decider in ("hier", "hier_rule"):
         try:
             provider = _make_hier_provider(cfg, args)
         except Exception as e:  # noqa: BLE001  (missing key / SDK: stop before any burn)

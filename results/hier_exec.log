@@ -1,0 +1,16 @@
+        haiku_rule lbg1_lg1_i2 seed=0 score=1,710 lady=5.0m guard=593.5m age=0.00s wall=85.3s
+        haiku_rule lbg1_lg1_i2 seed=1 score=2,898 lady=4.8m guard=347.8m age=0.00s wall=93.0s
+        haiku_rule lbg1_lg7_i2 seed=0 score=626,914 lady=649.1m guard=4.8m age=0.00s wall=91.8s
+        haiku_rule lbg1_lg7_i2 seed=1 score=756,759 lady=747.4m guard=4.9m age=0.00s wall=96.4s
+    hier_rule_fast lbg1_lg1_i2 seed=0 score=3,863 lady=4.9m guard=260.4m age=0.00s wall=195.2s
+    hier_rule_fast lbg1_lg1_i2 seed=1 score=2,139 lady=5.0m guard=473.0m age=0.00s wall=181.6s
+    hier_rule_fast lbg1_lg7_i2 seed=0 score=944,130 lady=853.2m guard=4.5m age=0.00s wall=138.0s
+    hier_rule_fast lbg1_lg7_i2 seed=1 score=285,955 lady=275.4m guard=4.7m age=0.00s wall=183.5s
+| config | scenario | n | median score | Lady caught % | Guard caught us % | closest Lady m | closest Guard m | fuel kg | decision latency p50 s | tactical latency p50 s | mean action age s | errors |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| haiku_rule | lbg1_lg1_i2 | 2 | 2,304 | 100.0 | 0.0 | 4.9 | 470.6 | 86.5 | 0.00 | 4.14 | 0.00 | 0 |
+| hier_rule_fast | lbg1_lg1_i2 | 2 | 3,001 | 100.0 | 0.0 | 4.9 | 366.7 | 87.8 | 0.00 | 3.86 | 0.00 | 0 |
+| haiku_rule | lbg1_lg7_i2 | 2 | 691,837 | 0.0 | 100.0 | 698.2 | 4.9 | 88.1 | 0.00 | 5.43 | 0.00 | 0 |
+| hier_rule_fast | lbg1_lg7_i2 | 2 | 615,042 | 0.0 | 100.0 | 564.3 | 4.6 | 126.7 | 0.00 | 3.80 | 0.00 | 0 |
+
+results in results/hier_exec

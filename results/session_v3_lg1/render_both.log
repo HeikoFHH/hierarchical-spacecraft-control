@@ -1,0 +1,11 @@
+{
+  "out": "results/session_v3_lg1/both_vs_rule.mp4",
+  "frames": 781,
+  "fps": 24,
+  "mission_s": 240.0,
+  "outcomes": [
+    "timeout",
+    "capture",
+    "capture"
+  ]
+}

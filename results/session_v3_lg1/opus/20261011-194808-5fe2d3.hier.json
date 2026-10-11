@@ -1,0 +1,26 @@
+{
+  "strategy": {
+    "brief": {
+      "objective": "Minimize closest_lady_bandit_distance^2 + 1e6/(closest_bandit_guard_distance+0.1) within 240 s. Ideally reach 5 m of the Lady for the win, but never let the Guard close to 5 m. The Lady miss term dominates, so trade some Guard proximity, holding it above about 150 m, for Lady distance.",
+      "approach": "Open with a radial sidestep while accelerating along-track, so the Bandit passes the Guard (at y=-600) with several hundred metres of lateral clearance rather than flying straight into it. Lean on CW dynamics: radial thrust changes along-track drift, so re-plan from measured states every period instead of trusting open-loop arcs. Once past the Guard and with it trailing, brake on a glide slope into the Lady at low terminal speed, using EVADE_GUARD only when the Guard's predicted range falls below the keepout. Do not burn fuel on long chases; if the Guard blocks completely, settle for HOLD_STANDOFF at the closest safe distance to the Lady.",
+      "guard_keepout_m": 150.0,
+      "max_closing_speed_mps": 15.0,
+      "final_approach_speed_mps": 2.0,
+      "fuel_reserve_fraction": 0.15,
+      "tactical_period_s": 4.0,
+      "phases": [
+        "0-20 s: Accelerate along-track toward the Lady to about 12-15 m/s while thrusting radially to build an offset of 300+ m from the Guard's line, choosing the side away from the Guard's current velocity.",
+        "20-120 s: Sprint past the Guard on the offset arc, using EVADE_GUARD sidesteps if predicted Guard range drops below 150 m. Keep the Guard behind or abeam rather than ahead.",
+        "120-200 s: Bleed off the radial offset and brake along the glide slope toward the Lady with APPROACH_LADY, keeping closing speed matched to stopping distance.",
+        "200-240 s: Terminal approach at no more than 2 m/s to within 5 m of the Lady. If the Guard is within keepout, prioritize evasion, then resume the approach; in the final seconds favor Lady proximity unless the Guard is closer than about 50 m.",
+        "Contingency: if fuel falls below the 15% reserve, switch to COAST/HOLD_STANDOFF on the best Lady bearing."
+      ]
+    },
+    "model": "claude-opus-5-5",
+    "latency_s": 16.606,
+    "input_tokens": 1553,
+    "output_tokens": 1461
+  },
+  "goals": [],
+  "errors": []
+}

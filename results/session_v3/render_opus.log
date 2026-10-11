@@ -1,0 +1,11 @@
+{
+  "out": "results/session_v3/opus_vs_rule.mp4",
+  "frames": 572,
+  "fps": 24,
+  "mission_s": 170.1,
+  "outcomes": [
+    "interception",
+    "interception",
+    "interception"
+  ]
+}

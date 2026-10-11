@@ -1,0 +1,11 @@
+{
+  "out": "results/session_v3/both_vs_rule.mp4",
+  "frames": 573,
+  "fps": 24,
+  "mission_s": 170.35,
+  "outcomes": [
+    "interception",
+    "interception",
+    "interception"
+  ]
+}

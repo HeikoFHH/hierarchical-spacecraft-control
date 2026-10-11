@@ -1,0 +1,26 @@
+{
+  "strategy": {
+    "brief": {
+      "objective": "Minimise closest_lady^2 + 1e6/(closest_guard+0.1) within 240 s. Close most of the 2600 m gap to the Lady while keeping the Guard beyond roughly 250-300 m. A Guard pass inside 100 m costs as much as a 100 m Lady miss, so never trade Guard separation for small Lady gains. A 5 m Lady capture is a bonus, not a requirement.",
+      "approach": "The Guard sits on the direct along-track line, so flank it in-plane: build a radial offset of a few hundred metres (prefer -x, below the Lady, which also gives slight forward relative drift) while accelerating along +y. Pass the Guard laterally rather than through it. Limit closing speed to about 10-12 m/s so delta-v remains for evasion and braking. Whenever the Guard is inside the keepout and closing, switch to EVADE_GUARD (sidestep toward the Lady, never straight back). Resume APPROACH_LADY once Guard range is opening. Begin braking early so the final approach is slow and controlled. If the Guard parks on the Lady, settle for HOLD_STANDOFF at the best achievable Lady range rather than forcing a pass.",
+      "guard_keepout_m": 300.0,
+      "max_closing_speed_mps": 11.0,
+      "final_approach_speed_mps": 2.0,
+      "fuel_reserve_fraction": 0.15,
+      "tactical_period_s": 4.0,
+      "phases": [
+        "T0-20s: accelerate +y to about 8 m/s while building a -x radial offset of about 300-400 m to open a flank around the Guard",
+        "20-120s: flanking transit past the Guard; EVADE_GUARD whenever Guard range < 300 m and closing; otherwise APPROACH_LADY via GO_TO_WAYPOINT on the flank",
+        "120-200s: once past the Guard, APPROACH_LADY along the braking glide slope, cutting closing speed as Lady range drops below about 500 m",
+        "200-240s: final approach at <=2 m/s for capture; if the Guard blocks, HOLD_STANDOFF at the closest safe range and COAST to conserve fuel",
+        "Throughout: keep at least 15% fuel reserved for last-second evasion; never let Guard range fall below about 100 m"
+      ]
+    },
+    "model": "claude-opus-5-5",
+    "latency_s": 15.06,
+    "input_tokens": 1553,
+    "output_tokens": 1217
+  },
+  "goals": [],
+  "errors": []
+}

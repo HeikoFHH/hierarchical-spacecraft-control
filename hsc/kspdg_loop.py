@@ -75,6 +75,8 @@ class LoopConfig:
     krpc_stream_port: int = 50001
     trace_dir: str = "results/traces"
     fixture_scenario: str = "i2:lg7"  # --env fixture only: init_cond:lady_guard_policy of the lbg1_lite stand-in
+    fixture_pace_s: float = 0.0  # --env fixture only: wall seconds to sleep after each step (0.25 = real-time for 0.25 s burns)
+    hier_layers: str = "both"  # decider hier/hier_rule: which upper layers run: both, opus (brief only) or haiku (goals only)
 
     def validate(self):
         if self.warmup_requests < 0:
@@ -87,6 +89,10 @@ class LoopConfig:
             raise LoopError("invalid_config", f"thrust_magnitude={self.thrust_magnitude} must be in (0, 1]")
         if self.burn_duration_s > MAX_DURATION_S:
             raise LoopError("invalid_config", f"burn_duration_s={self.burn_duration_s} exceeds {MAX_DURATION_S}")
+        if self.hier_layers not in ("both", "opus", "haiku"):
+            raise LoopError("invalid_config", f"hier_layers={self.hier_layers!r} must be 'both', 'opus' or 'haiku'")
+        if not (isinstance(self.fixture_pace_s, (int, float)) and self.fixture_pace_s >= 0):
+            raise LoopError("invalid_config", "fixture_pace_s must be >= 0")
         if self.history_len < 1:
             raise LoopError("invalid_config", "history_len must be >= 1")
         if self.decider not in ("kev", "rule", "hier", "hier_rule"):
@@ -356,8 +362,25 @@ def make_env(kind: str, cfg: LoopConfig, check_krpc: bool = True):
         from hsc.sim.lbg1_lite import LBG1LiteEnv
 
         init_cond, policy = cfg.fixture_scenario.split(":")
-        return LBG1LiteEnv(init_cond, policy, episode_timeout=cfg.episode_timeout_s, two_axis=False)
+        env = LBG1LiteEnv(init_cond, policy, episode_timeout=cfg.episode_timeout_s, two_axis=False)
+        return _PacedEnv(env, cfg.fixture_pace_s) if cfg.fixture_pace_s > 0 else env
     raise LoopError("invalid_config", f"unknown env {kind!r}")
+
+
+class _PacedEnv:
+    """Fixture only: the real game runs in wall-clock time (a burn busy-waits for its duration), the stand-in
+    does not. Sleeping after each step lets asynchronous layers (Haiku) deliver goals while the episode runs."""
+
+    def __init__(self, env, pace_s: float):
+        self._env, self._pace_s = env, pace_s
+
+    def __getattr__(self, name):
+        return getattr(self._env, name)
+
+    def step(self, cmd):
+        out = self._env.step(cmd)
+        time.sleep(self._pace_s)
+        return out
 
 
 def _route_krpc(cfg: LoopConfig):
@@ -565,7 +588,7 @@ def _make_hier_provider(cfg: LoopConfig, args):
     if not os.environ.get("ANTHROPIC_API_KEY"):
         raise RuntimeError("ANTHROPIC_API_KEY is not set in the environment (decider=hier needs Opus and Haiku)")
     from hsc.hier_context import HierarchicalContext
-    from hsc.layers.strategist import OpusStrategist
+    from hsc.layers.strategist import FixedStrategist, OpusStrategist
     from hsc.layers.tactician import HaikuTactician
 
     prop = 0.0
@@ -573,7 +596,9 @@ def _make_hier_provider(cfg: LoopConfig, args):
         from hsc.sim.lbg1_lite import LBG1LiteEnv
 
         prop = LBG1LiteEnv("i2", "lg7", two_axis=False).bandit_params.prop_mass
-    return HierarchicalContext(OpusStrategist(), HaikuTactician(), prop_capacity=prop,
+    strategist = OpusStrategist() if cfg.hier_layers in ("both", "opus") else FixedStrategist()
+    tactician = HaikuTactician() if cfg.hier_layers in ("both", "haiku") else None
+    return HierarchicalContext(strategist, tactician, prop_capacity=prop,
                                episode_timeout_s=cfg.episode_timeout_s, scenario_label=cfg.scenario)
 
 

@@ -1,0 +1,25 @@
+{
+  "strategy": {
+    "brief": {
+      "objective": "Minimize closest Lady distance squared plus 1e6/(closest Guard distance+0.1). The Lady term dominates: starting 2600 m out costs about 6.8e6, while a Guard pass at 100 m costs only about 1e4. Close most of the 2600 m within 240 s without letting the Guard reach 5 m, because a capture ends the episode and freezes the Lady miss distance.",
+      "approach": "Accelerate early and hard toward the Lady (+y) at up to 15 m/s, using a radial offset waypoint of about 300 to 400 m to sidestep the Guard rather than flying straight through it. Re-aim continuously, since the advanced Guard re-aims and closes at about 12 m/s. Trigger EVADE_GUARD only when the Guard is inside the keepout and closing, sidestepping radially around it and toward the Lady, then return immediately to APPROACH_LADY once the Guard is behind or abeam. Accept Guard passes near 100 m, but never allow its distance below about 30 m; inside about 400 m of the Lady, brake onto the glide slope for a slow final approach to under 5 m while keeping enough fuel for one late evasion.",
+      "guard_keepout_m": 150.0,
+      "max_closing_speed_mps": 15.0,
+      "final_approach_speed_mps": 2.5,
+      "fuel_reserve_fraction": 0.15,
+      "tactical_period_s": 4.0,
+      "phases": [
+        "0-20 s: burn along-track toward the Lady to reach 12-15 m/s while drifting radially to a 300-400 m offset waypoint, opening a lane past the Guard",
+        "20-140 s: run past the Guard at high closing speed; EVADE_GUARD sidesteps when the Guard is inside 150 m and closing, then resume APPROACH_LADY at once",
+        "140-200 s: once the Guard is behind, brake progressively along the glide slope to cut closing speed below 5 m/s inside 400 m of the Lady",
+        "200-240 s: final APPROACH_LADY at about 2.5 m/s to get within 5 m; if the Guard re-closes inside 50 m, take a short evade and then continue toward the Lady"
+      ]
+    },
+    "model": "claude-opus-5-5",
+    "latency_s": 15.252,
+    "input_tokens": 1553,
+    "output_tokens": 1259
+  },
+  "goals": [],
+  "errors": []
+}

@@ -50,7 +50,7 @@ class HierarchicalContext:
         self.history.append(s)
         with self._lock:
             busy = self._thread is not None and self._thread.is_alive()
-            if not busy and t >= self.next_tactical_t - 1e-9:
+            if self.tactician is not None and not busy and t >= self.next_tactical_t - 1e-9:
                 self.next_tactical_t = t + self.brief.tactical_period_s
                 self._thread = threading.Thread(target=self._tactical, args=(list(self.history), self.brief, self.goal, t),
                                                 daemon=True)

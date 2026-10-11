@@ -1,0 +1,21 @@
+{
+  "run_id": "20261011-194808-08e7b0",
+  "trace": "results/session_v3_lg1/both/20261011-194808-08e7b0.jsonl",
+  "steps": 738,
+  "terminal_reason": "capture",
+  "info": {
+    "closest_lady_bandit_approach": 4.9738956177676705,
+    "closest_lady_bandit_approach_time": 184.5,
+    "closest_bandit_guard_approach": 433.5734712656889,
+    "closest_lady_guard_approach": 247.75086151000832,
+    "minimum_lady_bandit_distance_speed_product": 3.749881735605172,
+    "bandit_fuel_usage": 102.8548645631567,
+    "guard_fuel_usage": 169.9527021629869,
+    "lady_fuel_usage": 0.0,
+    "weighted_score": 2330.6219805724754,
+    "is_lady_captured": true,
+    "is_bandit_captured": false,
+    "mission_elapsed_time": 184.5
+  },
+  "hier_log": "results/session_v3_lg1/both/20261011-194808-08e7b0.hier.json"
+}

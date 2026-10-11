@@ -1,0 +1,700 @@
+{
+  "strategy": {
+    "brief": {
+      "objective": "Minimise closest Lady distance squared plus 1e6/(closest Guard distance + 0.1) within 240 s, never letting the Guard inside 5 m. Lady miss distance dominates the score, so close aggressively on the Lady, and spend Guard margin only to avoid capture.",
+      "approach": "Accelerate along-track toward the Lady early, using the full 240 s; about 11 m/s average is needed to cover 2600 m. Build an early radial offset so the pass around the Guard is lateral rather than head-on. When the Guard is within about 250 m and the combined closing rate is high, switch to EVADE_GUARD to sidestep around it toward the Lady, then resume APPROACH_LADY as soon as the Guard is behind or opening. Inside 300 m, follow the braking glide slope to reach 5 m, keep a fuel reserve for the terminal brake and last-second evasion, and avoid long BRAKE or HOLD phases that let the advanced Guard catch up.",
+      "guard_keepout_m": 60.0,
+      "max_closing_speed_mps": 18.0,
+      "final_approach_speed_mps": 2.0,
+      "fuel_reserve_fraction": 0.15,
+      "tactical_period_s": 4.0,
+      "phases": [
+        "T0-20s: APPROACH_LADY at full along-track thrust while adding radial offset (about 1 m/s radial) to open a lateral lane past the Guard",
+        "Transit: APPROACH_LADY capped at 18 m/s and keep the radial offset; COAST when at speed to save fuel",
+        "Guard pass: EVADE_GUARD whenever the Guard is under 250 m and closing, sidestepping radially around it toward the Lady and never letting it inside 60 m",
+        "Post-pass: APPROACH_LADY immediately once the Guard is behind or its range is opening",
+        "Terminal: inside 300 m of the Lady, brake along the glide slope to 2 m/s and close to under 5 m; EVADE_GUARD only if the Guard is under 60 m",
+        "Fallback: if the Lady is unreachable before 240 s, keep closing on the Lady anyway and use HOLD_STANDOFF only if the Guard threatens capture"
+      ]
+    },
+    "model": "claude-opus-5-5",
+    "latency_s": 15.888,
+    "input_tokens": 1553,
+    "output_tokens": 1365
+  },
+  "goals": [
+    {
+      "mission_t": 0.0,
+      "version": 1,
+      "goal": {
+        "mode_hint": "APPROACH_LADY",
+        "waypoint_lvlh_m": null,
+        "max_closing_speed_mps": 18.0,
+        "guard_keepout_m": 60.0,
+        "standoff_m": 300.0,
+        "rationale": "The Guard sits about 600 m from the Lady on the approach line, so start full along-track approach now while the 2000 m separation leaves room to add a radial offset for a lateral pass later.",
+        "issued_at": 0.0,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 3.37,
+      "input_tokens": 2654,
+      "output_tokens": 513
+    },
+    {
+      "mission_t": 4.0,
+      "version": 2,
+      "goal": {
+        "mode_hint": "APPROACH_LADY",
+        "waypoint_lvlh_m": null,
+        "max_closing_speed_mps": 18.0,
+        "guard_keepout_m": 60.0,
+        "standoff_m": 300.0,
+        "rationale": "The Bandit is accelerating along-track toward the Lady while the Guard is still about 2000 m away and closing on it, so continue full APPROACH_LADY with the radial offset build-up before the pass.",
+        "issued_at": 4.0,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 1.901,
+      "input_tokens": 4405,
+      "output_tokens": 166
+    },
+    {
+      "mission_t": 8.0,
+      "version": 3,
+      "goal": {
+        "mode_hint": "APPROACH_LADY",
+        "waypoint_lvlh_m": null,
+        "max_closing_speed_mps": 18.0,
+        "guard_keepout_m": 60.0,
+        "standoff_m": 300.0,
+        "rationale": "The Guard is still about 1930 m away and closing at roughly 14 m/s, so keep full along-track APPROACH_LADY at the 18 m/s cap and add radial offset before the pass, with EVADE_GUARD reserved for when it reaches about 250 m.",
+        "issued_at": 8.0,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 4.624,
+      "input_tokens": 4410,
+      "output_tokens": 778
+    },
+    {
+      "mission_t": 12.5,
+      "version": 4,
+      "goal": {
+        "mode_hint": "APPROACH_LADY",
+        "waypoint_lvlh_m": null,
+        "max_closing_speed_mps": 18.0,
+        "guard_keepout_m": 60.0,
+        "standoff_m": 300.0,
+        "rationale": "The Guard is still about 1870 m out and closing at roughly 13 m/s, so keep full along-track APPROACH_LADY toward the 18 m/s cap, add a small radial offset away from the Guard's drift, and reserve EVADE_GUARD for when it nears 250 m.",
+        "issued_at": 12.5,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 4.401,
+      "input_tokens": 4435,
+      "output_tokens": 750
+    },
+    {
+      "mission_t": 17.0,
+      "version": 5,
+      "goal": {
+        "mode_hint": "APPROACH_LADY",
+        "waypoint_lvlh_m": null,
+        "max_closing_speed_mps": 18.0,
+        "guard_keepout_m": 60.0,
+        "standoff_m": 300.0,
+        "rationale": "The Guard is about 1810 m out and drifting toward +x, so keep full along-track APPROACH_LADY while adding a small inward (-x) radial offset to set up a lateral pass, and switch to EVADE_GUARD when it nears 250 m.",
+        "issued_at": 17.0,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 4.585,
+      "input_tokens": 4442,
+      "output_tokens": 712
+    },
+    {
+      "mission_t": 21.5,
+      "version": 6,
+      "goal": {
+        "mode_hint": "APPROACH_LADY",
+        "waypoint_lvlh_m": null,
+        "max_closing_speed_mps": 18.0,
+        "guard_keepout_m": 60.0,
+        "standoff_m": 300.0,
+        "rationale": "The Guard is still about 1750 m away and its range is closing slowly, so keep full along-track APPROACH_LADY with the small inward radial offset, and switch to EVADE_GUARD once it nears 250 m.",
+        "issued_at": 21.5,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 1.917,
+      "input_tokens": 4432,
+      "output_tokens": 172
+    },
+    {
+      "mission_t": 25.5,
+      "version": 7,
+      "goal": {
+        "mode_hint": "APPROACH_LADY",
+        "waypoint_lvlh_m": null,
+        "max_closing_speed_mps": 18.0,
+        "guard_keepout_m": 60.0,
+        "standoff_m": 300.0,
+        "rationale": "The Guard is still about 1700 m away and the Bandit is closing on the Lady at about 14 m/s, so keep full APPROACH_LADY with the inward radial offset and switch to EVADE_GUARD on the negative-x side once the Guard nears 250 m.",
+        "issued_at": 25.5,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 4.464,
+      "input_tokens": 4420,
+      "output_tokens": 728
+    },
+    {
+      "mission_t": 30.0,
+      "version": 8,
+      "goal": {
+        "mode_hint": "APPROACH_LADY",
+        "waypoint_lvlh_m": null,
+        "max_closing_speed_mps": 18.0,
+        "guard_keepout_m": 60.0,
+        "standoff_m": 300.0,
+        "rationale": "The Bandit is closing on the Lady at about 15.8 m/s with the Guard still 1645 m away and offset to the +x side, so keep full APPROACH_LADY and hold the inward (-x) lane for a pass on the negative-x side when the Guard nears 250 m.",
+        "issued_at": 30.0,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 3.302,
+      "input_tokens": 4439,
+      "output_tokens": 520
+    },
+    {
+      "mission_t": 34.0,
+      "version": 9,
+      "goal": {
+        "mode_hint": "APPROACH_LADY",
+        "waypoint_lvlh_m": null,
+        "max_closing_speed_mps": 18.0,
+        "guard_keepout_m": 60.0,
+        "standoff_m": 300.0,
+        "rationale": "The Bandit is closing at about 17.4 m/s with 2237 m to the Lady and the Guard is 1594 m ahead and offset about 100 m to +x, so keep full APPROACH_LADY on the negative-x lane and switch to EVADE_GUARD when the Guard nears 250 m.",
+        "issued_at": 34.0,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 4.248,
+      "input_tokens": 4443,
+      "output_tokens": 659
+    },
+    {
+      "mission_t": 38.25,
+      "version": 10,
+      "goal": {
+        "mode_hint": "APPROACH_LADY",
+        "waypoint_lvlh_m": null,
+        "max_closing_speed_mps": 18.0,
+        "guard_keepout_m": 60.0,
+        "standoff_m": 300.0,
+        "rationale": "The Bandit is 2163 m from the Lady with about 200 s left, so it needs roughly 11 m/s average and should keep APPROACH_LADY on the negative-x lane, which sits about 200 m laterally clear of the Guard at +90 m x, and switch to EVADE_GUARD if the Guard closes inside 250 m.",
+        "issued_at": 38.25,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 4.574,
+      "input_tokens": 4453,
+      "output_tokens": 758
+    },
+    {
+      "mission_t": 42.75,
+      "version": 11,
+      "goal": {
+        "mode_hint": "APPROACH_LADY",
+        "waypoint_lvlh_m": null,
+        "max_closing_speed_mps": 18.0,
+        "guard_keepout_m": 60.0,
+        "standoff_m": 300.0,
+        "rationale": "The Bandit is 2083 m from the Lady with 197 s left and needs about 10.6 m/s average, while the Guard sits about 220 m off the lane at +79 m x, so keep APPROACH_LADY on the negative-x side and switch to EVADE_GUARD if the Guard closes inside 250 m.",
+        "issued_at": 42.75,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 3.503,
+      "input_tokens": 4465,
+      "output_tokens": 590
+    },
+    {
+      "mission_t": 46.75,
+      "version": 12,
+      "goal": {
+        "mode_hint": "APPROACH_LADY",
+        "waypoint_lvlh_m": null,
+        "max_closing_speed_mps": 18.0,
+        "guard_keepout_m": 60.0,
+        "standoff_m": 300.0,
+        "rationale": "The Bandit is 2011 m from the Lady with 193 s left, needs about 10.4 m/s average, and is already at 18.5 m/s along-track while the Guard sits about 230 m off the lane at +70 m x, so keep APPROACH_LADY on the negative-x side and switch to EVADE_GUARD if the Guard closes inside 250 m.",
+        "issued_at": 46.75,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 4.032,
+      "input_tokens": 4458,
+      "output_tokens": 673
+    },
+    {
+      "mission_t": 50.75,
+      "version": 13,
+      "goal": {
+        "mode_hint": "APPROACH_LADY",
+        "waypoint_lvlh_m": null,
+        "max_closing_speed_mps": 18.0,
+        "guard_keepout_m": 60.0,
+        "standoff_m": 300.0,
+        "rationale": "The Bandit is 1939 m from the Lady with 189 s left and is already closing at 18.1 m/s, while the Guard sits about 240 m laterally at x=+61 m, so keep APPROACH_LADY on the negative-x lane and switch to EVADE_GUARD if the Guard comes within 250 m.",
+        "issued_at": 50.75,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 4.699,
+      "input_tokens": 4474,
+      "output_tokens": 818
+    },
+    {
+      "mission_t": 55.5,
+      "version": 14,
+      "goal": {
+        "mode_hint": "APPROACH_LADY",
+        "waypoint_lvlh_m": null,
+        "max_closing_speed_mps": 18.0,
+        "guard_keepout_m": 60.0,
+        "standoff_m": 300.0,
+        "rationale": "The Guard is still 1333 m away and the Bandit already holds a roughly 250 m radial offset on the negative-x side, so keep closing on the Lady at the 18 m/s cap and switch to EVADE_GUARD only once the Guard is under 250 m and closing.",
+        "issued_at": 55.5,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 4.451,
+      "input_tokens": 4460,
+      "output_tokens": 730
+    },
+    {
+      "mission_t": 60.0,
+      "version": 15,
+      "goal": {
+        "mode_hint": "APPROACH_LADY",
+        "waypoint_lvlh_m": null,
+        "max_closing_speed_mps": 18.0,
+        "guard_keepout_m": 60.0,
+        "standoff_m": 300.0,
+        "rationale": "The Bandit already sits about 260 m laterally off the Guard's x-track at 18 m/s, so keep closing on the Lady and switch to EVADE_GUARD only if the Guard drops under 250 m while still closing.",
+        "issued_at": 60.0,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 3.83,
+      "input_tokens": 4444,
+      "output_tokens": 630
+    },
+    {
+      "mission_t": 64.0,
+      "version": 16,
+      "goal": {
+        "mode_hint": "APPROACH_LADY",
+        "waypoint_lvlh_m": null,
+        "max_closing_speed_mps": 18.0,
+        "guard_keepout_m": 60.0,
+        "standoff_m": 300.0,
+        "rationale": "The Guard is still about 1230 m away and about 270 m laterally offset from the Bandit's track, and the Lady is 1700 m off at a 176 s budget, so keep closing at the 18 m/s cap and switch to EVADE_GUARD only if the Guard comes under 250 m while still closing.",
+        "issued_at": 64.0,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 3.998,
+      "input_tokens": 4428,
+      "output_tokens": 573
+    },
+    {
+      "mission_t": 68.0,
+      "version": 17,
+      "goal": {
+        "mode_hint": "APPROACH_LADY",
+        "waypoint_lvlh_m": null,
+        "max_closing_speed_mps": 18.0,
+        "guard_keepout_m": 60.0,
+        "standoff_m": 300.0,
+        "rationale": "The Bandit is about 270 m laterally clear of the Guard at 1184 m range, so keep the 18 m/s approach on the Lady and switch to EVADE_GUARD only if the Guard closes under 250 m.",
+        "issued_at": 68.0,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 5.805,
+      "input_tokens": 4455,
+      "output_tokens": 819
+    },
+    {
+      "mission_t": 73.75,
+      "version": 18,
+      "goal": {
+        "mode_hint": "APPROACH_LADY",
+        "waypoint_lvlh_m": null,
+        "max_closing_speed_mps": 18.0,
+        "guard_keepout_m": 60.0,
+        "standoff_m": 300.0,
+        "rationale": "The Bandit is about 280 m radially clear of the Guard at 1115 m range with a combined closing rate near 12.6 m/s, so keep the 18 m/s approach on the Lady and switch to EVADE_GUARD once the Guard closes under 250 m.",
+        "issued_at": 73.75,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 4.54,
+      "input_tokens": 4429,
+      "output_tokens": 777
+    },
+    {
+      "mission_t": 78.25,
+      "version": 19,
+      "goal": {
+        "mode_hint": "APPROACH_LADY",
+        "waypoint_lvlh_m": null,
+        "max_closing_speed_mps": 18.0,
+        "guard_keepout_m": 60.0,
+        "standoff_m": 300.0,
+        "rationale": "The Bandit is at 1439 m from the Lady with the Guard about 1062 m away and closing at about 12 m/s, and the Bandit's radial offset of about -267 m keeps it well off the Guard's line, so continue APPROACH_LADY at the 18 m/s cap and switch to EVADE_GUARD once the Guard is under 250 m and still closing",
+        "issued_at": 78.25,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 2.003,
+      "input_tokens": 4444,
+      "output_tokens": 222
+    },
+    {
+      "mission_t": 82.25,
+      "version": 20,
+      "goal": {
+        "mode_hint": "APPROACH_LADY",
+        "waypoint_lvlh_m": null,
+        "max_closing_speed_mps": 18.0,
+        "guard_keepout_m": 60.0,
+        "standoff_m": 300.0,
+        "rationale": "The Bandit is at 1366 m from the Lady, Guard at 1014 m and closing, with the Bandit offset about -272 m radially, so continue APPROACH_LADY at the 18 m/s cap and switch to EVADE_GUARD once the Guard is under 250 m and still closing.",
+        "issued_at": 82.25,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 1.789,
+      "input_tokens": 4477,
+      "output_tokens": 199
+    },
+    {
+      "mission_t": 86.25,
+      "version": 21,
+      "goal": {
+        "mode_hint": "APPROACH_LADY",
+        "waypoint_lvlh_m": null,
+        "max_closing_speed_mps": 18.0,
+        "guard_keepout_m": 60.0,
+        "standoff_m": 300.0,
+        "rationale": "Bandit is about 1293 m from the Lady with the Guard at 966 m and closing, so keep APPROACH_LADY at the 18 m/s cap while preparing to switch to EVADE_GUARD once the Guard is under 250 m and still closing.",
+        "issued_at": 86.25,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 1.385,
+      "input_tokens": 4453,
+      "output_tokens": 186
+    },
+    {
+      "mission_t": 90.25,
+      "version": 22,
+      "goal": {
+        "mode_hint": "APPROACH_LADY",
+        "waypoint_lvlh_m": null,
+        "max_closing_speed_mps": 18.0,
+        "guard_keepout_m": 60.0,
+        "standoff_m": 300.0,
+        "rationale": "The Bandit is about 1220 m from the Lady at 18 m/s with the Guard at 918 m, so keep APPROACH_LADY at the cap and switch to EVADE_GUARD once the Guard is under 250 m and still closing, since the radial offset is only about -277 m on x and the lane is not yet clear.",
+        "issued_at": 90.25,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 1.938,
+      "input_tokens": 4440,
+      "output_tokens": 206
+    },
+    {
+      "mission_t": 94.25,
+      "version": 23,
+      "goal": {
+        "mode_hint": "APPROACH_LADY",
+        "waypoint_lvlh_m": null,
+        "max_closing_speed_mps": 18.0,
+        "guard_keepout_m": 60.0,
+        "standoff_m": 300.0,
+        "rationale": "The Guard is still about 870 m away and the Bandit sits about 276 m radially off its line, so the lateral lane is already open and the Bandit should keep approaching the Lady at the 18 m/s cap until the Guard closes inside 250 m.",
+        "issued_at": 94.25,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 4.741,
+      "input_tokens": 4461,
+      "output_tokens": 721
+    },
+    {
+      "mission_t": 99.0,
+      "version": 24,
+      "goal": {
+        "mode_hint": "APPROACH_LADY",
+        "waypoint_lvlh_m": null,
+        "max_closing_speed_mps": 18.0,
+        "guard_keepout_m": 60.0,
+        "standoff_m": 300.0,
+        "rationale": "The Guard is about 813 m away and roughly 270 m radially offset from the Bandit's lane, so keep approaching the Lady at the 18 m/s cap and switch to EVADE_GUARD only once the Guard closes inside about 250 m.",
+        "issued_at": 99.0,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 4.07,
+      "input_tokens": 4435,
+      "output_tokens": 689
+    },
+    {
+      "mission_t": 103.0,
+      "version": 25,
+      "goal": {
+        "mode_hint": "APPROACH_LADY",
+        "waypoint_lvlh_m": null,
+        "max_closing_speed_mps": 18.0,
+        "guard_keepout_m": 60.0,
+        "standoff_m": 300.0,
+        "rationale": "The Bandit already sits about 268 m radially inboard of the Guard's lane, so the pass should be lateral; keep APPROACH_LADY at the 18 m/s cap and switch to EVADE_GUARD only when the Guard closes inside about 250 m.",
+        "issued_at": 103.0,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 3.733,
+      "input_tokens": 4435,
+      "output_tokens": 584
+    },
+    {
+      "mission_t": 107.0,
+      "version": 26,
+      "goal": {
+        "mode_hint": "APPROACH_LADY",
+        "waypoint_lvlh_m": null,
+        "max_closing_speed_mps": 18.0,
+        "guard_keepout_m": 60.0,
+        "standoff_m": 300.0,
+        "rationale": "The Bandit is about 256 m radially outboard of the Guard's track (x -261 vs x -5) and the radial drift is slow, so the pass stays lateral and APPROACH_LADY at the 18 m/s cap should continue until the Guard closes inside about 250 m of the Bandit.",
+        "issued_at": 107.0,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 5.314,
+      "input_tokens": 4439,
+      "output_tokens": 874
+    },
+    {
+      "mission_t": 112.25,
+      "version": 27,
+      "goal": {
+        "mode_hint": "APPROACH_LADY",
+        "waypoint_lvlh_m": null,
+        "max_closing_speed_mps": 18.0,
+        "guard_keepout_m": 60.0,
+        "standoff_m": 300.0,
+        "rationale": "The Guard is still about 245 m radially inboard of the Bandit (x -249 vs -5) with a 608 m along-track gap closing at about 12 m/s, so the pass stays lateral and APPROACH_LADY at the 18 m/s cap should continue until the Guard closes within about 250 m, when EVADE_GUARD takes over.",
+        "issued_at": 112.25,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 4.682,
+      "input_tokens": 4449,
+      "output_tokens": 752
+    },
+    {
+      "mission_t": 117.0,
+      "version": 28,
+      "goal": {
+        "mode_hint": "APPROACH_LADY",
+        "waypoint_lvlh_m": null,
+        "max_closing_speed_mps": 18.0,
+        "guard_keepout_m": 60.0,
+        "standoff_m": 300.0,
+        "rationale": "The Guard is about 232 m radially inboard of the Bandit (x -3 vs -235) and 550 m along-track, so the pass is already lateral and well clear of the 60 m keep-out, so keep APPROACH_LADY at the 18 m/s cap and switch to EVADE_GUARD only if the radial separation collapses.",
+        "issued_at": 117.0,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 5.518,
+      "input_tokens": 4465,
+      "output_tokens": 1012
+    },
+    {
+      "mission_t": 122.5,
+      "version": 29,
+      "goal": {
+        "mode_hint": "APPROACH_LADY",
+        "waypoint_lvlh_m": null,
+        "max_closing_speed_mps": 18.0,
+        "guard_keepout_m": 60.0,
+        "standoff_m": 300.0,
+        "rationale": "The Guard is now about 112 m ahead along-track and nearly on the Bandit-Lady line, but the Bandit is still 215 m radially outboard at -215 m, so keep APPROACH_LADY at the 18 m/s cap and switch to EVADE_GUARD if the radial gap shrinks below about 100 m while the Guard is within 250 m.",
+        "issued_at": 122.5,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 7.182,
+      "input_tokens": 4459,
+      "output_tokens": 1218
+    },
+    {
+      "mission_t": 129.75,
+      "version": 30,
+      "goal": {
+        "mode_hint": "APPROACH_LADY",
+        "waypoint_lvlh_m": null,
+        "max_closing_speed_mps": 18.0,
+        "guard_keepout_m": 60.0,
+        "standoff_m": 300.0,
+        "rationale": "At t=129.8 the Guard is about 190 m radially outboard of the Bandit and 400 m ahead along-track, so keep APPROACH_LADY at the 18 m/s cap and switch to EVADE_GUARD if the radial gap falls below about 100 m while the Guard is within 250 m.",
+        "issued_at": 129.75,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 6.546,
+      "input_tokens": 4465,
+      "output_tokens": 1174
+    },
+    {
+      "mission_t": 136.25,
+      "version": 31,
+      "goal": {
+        "mode_hint": "EVADE_GUARD",
+        "waypoint_lvlh_m": [
+          -100.0,
+          -30.0,
+          0.0
+        ],
+        "max_closing_speed_mps": 18.0,
+        "guard_keepout_m": 60.0,
+        "standoff_m": 300.0,
+        "rationale": "The Guard is now about 30 m from the Lady and 367 m from the Bandit, so the Bandit should sidestep radially inward to a waypoint around (-100, -30) and keep the Guard beyond 60 m while still closing on the Lady.",
+        "issued_at": 136.25,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 6.929,
+      "input_tokens": 4448,
+      "output_tokens": 1181
+    },
+    {
+      "mission_t": 143.25,
+      "version": 32,
+      "goal": {
+        "mode_hint": "GO_TO_WAYPOINT",
+        "waypoint_lvlh_m": [
+          -40.0,
+          -15.0,
+          0.0
+        ],
+        "max_closing_speed_mps": 6.0,
+        "guard_keepout_m": 60.0,
+        "standoff_m": 10.0,
+        "rationale": "The Guard now sits about 30 m from the Lady, so the Bandit should swing radially inward to a waypoint around (-40, -15), keeping roughly 68 m from the Guard, and slow the closing rate to 6 m/s while it continues toward the Lady.",
+        "issued_at": 143.25,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 6.774,
+      "input_tokens": 4440,
+      "output_tokens": 1172
+    },
+    {
+      "mission_t": 150.0,
+      "version": 33,
+      "goal": {
+        "mode_hint": "GO_TO_WAYPOINT",
+        "waypoint_lvlh_m": [
+          -40.0,
+          -15.0,
+          0.0
+        ],
+        "max_closing_speed_mps": 6.0,
+        "guard_keepout_m": 60.0,
+        "standoff_m": 10.0,
+        "rationale": "The Guard has drifted to about 32 m from the Lady on the far side, so the Bandit should keep its lateral offset at the (-40, -15) waypoint, about 73 m from the Guard, while closing at a controlled 6 m/s until the terminal glide slope takes over inside 300 m.",
+        "issued_at": 150.0,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 5.467,
+      "input_tokens": 4449,
+      "output_tokens": 973
+    },
+    {
+      "mission_t": 155.5,
+      "version": 34,
+      "goal": {
+        "mode_hint": "EVADE_GUARD",
+        "waypoint_lvlh_m": [
+          -75.0,
+          -40.0,
+          0.0
+        ],
+        "max_closing_speed_mps": 4.0,
+        "guard_keepout_m": 60.0,
+        "standoff_m": 10.0,
+        "rationale": "The Guard is 157 m away and closing at about 11 m/s from the Lady side, so the Bandit should sidestep radially outward to a waypoint offset from the Guard's path while keeping enough closing speed to reach the Lady's 142 m range before 240 s.",
+        "issued_at": 155.5,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 6.828,
+      "input_tokens": 4458,
+      "output_tokens": 1214
+    },
+    {
+      "mission_t": 162.25,
+      "version": 35,
+      "goal": {
+        "mode_hint": "EVADE_GUARD",
+        "waypoint_lvlh_m": [
+          -35.0,
+          -5.0,
+          0.0
+        ],
+        "max_closing_speed_mps": 6.0,
+        "guard_keepout_m": 60.0,
+        "standoff_m": 10.0,
+        "rationale": "The Guard is now 81 m away and about 24 m from the Lady, moving outward on the Bandit's side, so the Bandit should sidestep radially outward to a Lady-relative waypoint off the Guard's path while keeping closing speed modest to protect the 60 m keep-out.",
+        "issued_at": 162.25,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 7.702,
+      "input_tokens": 4444,
+      "output_tokens": 1543
+    },
+    {
+      "mission_t": 169.75,
+      "version": 36,
+      "goal": {
+        "mode_hint": "EVADE_GUARD",
+        "waypoint_lvlh_m": [
+          -30.0,
+          -78.0,
+          0.0
+        ],
+        "max_closing_speed_mps": 6.0,
+        "guard_keepout_m": 60.0,
+        "standoff_m": 10.0,
+        "rationale": "The Guard is only 8.4 m from the Bandit and closing, so the Bandit should sidestep radially outward (+x) to break the head-on track while keeping the Lady-relative closing speed low.",
+        "issued_at": 169.75,
+        "valid_for_s": 4.0
+      },
+      "model": "claude-haiku-5-5",
+      "latency_s": 9.799,
+      "input_tokens": 4452,
+      "output_tokens": 1739
+    }
+  ],
+  "errors": []
+}

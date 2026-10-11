@@ -524,3 +524,28 @@ def test_hier_context_adds_waypoint_in_the_loops_inertial_frame(tmp_path):
     ctx.wait()
     wp = [g["waypoint_rel_bandit_cbci_m"] for g in seen if g["waypoint_rel_bandit_cbci_m"]]
     assert wp and all(abs(sum(x * x for x in w) ** 0.5 - 2300) < 700 for w in wp)  # roughly 300 m behind the Lady, ~2.6 km away
+
+
+def test_hier_layers_opus_only_makes_one_brief_and_no_goals(tmp_path):
+    from hsc.hier_context import HierarchicalContext
+
+    cfg = K.LoopConfig(decider="hier_rule", hier_layers="opus", kev_base_url="http://127.0.0.1:9")
+    cfg.validate()
+    ctx = HierarchicalContext(_FakeStrategist(), None, prop_capacity=400.0, episode_timeout_s=240.0)
+    K.run(K.make_env("fixture", cfg), cfg, 15, env_kind="fixture", choose=K.hier_rule_choose, context_provider=ctx,
+          trace_path=tmp_path / "t.jsonl")
+    assert ctx.log["strategy"]["brief"]["approach"] == "fake brief" and ctx.log["goals"] == [] and ctx.version == 0
+
+
+def test_hier_layers_and_pace_are_validated_and_pacing_sleeps(monkeypatch):
+    with pytest.raises(K.LoopError):
+        K.LoopConfig(hier_layers="sonnet").validate()
+    with pytest.raises(K.LoopError):
+        K.LoopConfig(fixture_pace_s=-1).validate()
+    slept = []
+    monkeypatch.setattr(K.time, "sleep", slept.append)
+    cfg = K.LoopConfig(decider="rule", fixture_pace_s=0.25)
+    env = K.make_env("fixture", cfg)
+    env.reset()
+    env.step(K.command_for("COAST", cfg))
+    assert slept == [0.25] and env.episode_timeout == cfg.episode_timeout_s  # attribute access passes through

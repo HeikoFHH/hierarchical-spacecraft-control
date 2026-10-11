@@ -1,0 +1,25 @@
+{
+  "strategy": {
+    "brief": {
+      "objective": "Minimise closest_lady_bandit^2 + 1e6/(closest_guard+0.1) within 240 s. The Lady term dominates: 2600 m of miss costs about 6.8e6, while a 100 m Guard pass costs only about 1e4. So get as close to the Lady as possible, ideally within 5 m for the win, while keeping the Guard beyond about 100-150 m and never within 5 m.",
+      "approach": "Accelerate along +y early to about 18-20 m/s of closing speed so we outrun the Guard's roughly 12 m/s cap and arrive with time to spare. Before reaching the Guard (from about 900 m out), build a radial offset of about 200-300 m using the right/left axis, choosing the side opposite the Guard's current radial offset. Then shoot past it with EVADE_GUARD, so it sees a high crossing rate it cannot match. Once past, the Guard sits behind us chasing at no more than 12 m/s: brake progressively with APPROACH_LADY down the glide slope into a slow final approach, re-applying EVADE_GUARD only if the Guard comes within keepout. Avoid BRAKE or HOLD near the Guard, and keep at least 15% fuel so we can still dodge and capture at the end.",
+      "guard_keepout_m": 150.0,
+      "max_closing_speed_mps": 20.0,
+      "final_approach_speed_mps": 2.0,
+      "fuel_reserve_fraction": 0.15,
+      "tactical_period_s": 4.0,
+      "phases": [
+        "T0-25s BOOST: APPROACH_LADY at full along-track thrust toward 18-20 m/s closing, and start a radial offset via GO_TO_WAYPOINT at about (+/-250, -900, 0) on the side away from the Guard.",
+        "T25-90s BYPASS: Hold radial offset of at least 200 m while overtaking the Guard. EVADE_GUARD whenever guard_dist < 300 m or the Guard closes faster than 15 m/s, sidestepping toward the Lady and never reversing toward it.",
+        "T90-170s INGRESS: Guard is now behind. APPROACH_LADY on the braking glide slope, bleeding radial offset back to 0 and cutting speed to under 5 m/s by 150 m from the Lady. EVADE_GUARD only if guard_dist < 150 m.",
+        "T170-240s TERMINAL: Final approach at 2 m/s or less to close within 5 m of the Lady. If the Guard blocks the final approach, accept the closest safe distance and hold slightly offset rather than risk a capture inside 5 m. COAST when fuel is below the reserve and the geometry is acceptable."
+      ]
+    },
+    "model": "claude-opus-5-5",
+    "latency_s": 17.572,
+    "input_tokens": 1553,
+    "output_tokens": 1449
+  },
+  "goals": [],
+  "errors": []
+}
